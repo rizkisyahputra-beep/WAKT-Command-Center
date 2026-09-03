@@ -1,0 +1,10 @@
+Flask
+requests
+selenium
+webdriver-manager
+openpyxl
+docxtpl
+docx2pdf
+Pillow
+apscheduler
+pywin32
