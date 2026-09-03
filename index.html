@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAMET WAKT COMMAND CENTER</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 🟢 SUNTIKAN 1: Konfigurasi Dark Mode Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=times+new+roman:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- 🟢 SUNTIKAN 2: CSS Murni Anti-Crash Pengganti Klise Foto -->
+    <style>
+        /* 1. Warna Dasar Body & Layar Utama (Biru Sangat Gelap) */
+        html.dark, html.dark body, html.dark main, html.dark section { 
+            background-color: #0f172a !important; 
+            color: #f1f5f9 !important; 
+        }
+        
+        /* 2. Warna Panel, Sidebar, Header, dan Kotak Putih (Biru Gelap Menengah) */
+        html.dark aside, html.dark header, html.dark .bg-white {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+        
+        /* 3. Penjinak Warna-Warni Bawaan (Abu-abu, Hijau Akurasi, dll) */
+        html.dark .bg-slate-50, html.dark .bg-slate-100, html.dark .bg-slate-200, 
+        html.dark .bg-gray-50, html.dark .bg-gray-100, html.dark .bg-gray-200,
+        html.dark .bg-emerald-50, html.dark .bg-green-50, html.dark .bg-green-100,
+        html.dark .bg-amber-50, html.dark .bg-amber-100 {
+            background-color: #1e293b !important; /* Disamakan dengan warna panel */
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+        }
+        
+        /* 4. Input & Dropdown */
+        html.dark input, html.dark select, html.dark textarea {
+            background-color: #0f172a !important;
+            border-color: #475569 !important;
+            color: #f1f5f9 !important;
+        }
+        
+        /* 5. Warna Teks Otomatis */
+        html.dark .text-slate-900, html.dark .text-slate-800, html.dark .text-slate-700, html.dark .text-slate-600, 
+        html.dark .text-gray-800, html.dark .text-emerald-700, html.dark .text-green-700, html.dark .text-amber-700 {
+            color: #e2e8f0 !important;
+        }
+        html.dark .text-slate-500, html.dark .text-slate-400, html.dark .text-gray-500 {
+            color: #94a3b8 !important;
+        }
+        
+        /* 6. Tabel & Garis Pembatas */
+        html.dark table, html.dark th, html.dark td, html.dark .border-slate-100, html.dark .border-slate-200, html.dark .border-slate-300, html.dark .border-gray-200 {
+            border-color: #334155 !important;
+        }
+        
+        /* 7. Penyesuaian Tombol Biru */
+        html.dark .bg-blue-50 { background-color: #1e3a8a !important; }
+        html.dark .text-blue-600 { color: #93c5fd !important; }
+        html.dark .ring-slate-200 { --tw-ring-color: #334155 !important; box-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important; }
+        
+        /* 8. Scrollbar Kustom */
+        html.dark ::-webkit-scrollbar-track { background-color: #0f172a; }
+        html.dark ::-webkit-scrollbar-thumb { background-color: #475569; }
+        
+        html, body, main, section, aside, header, div { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased flex min-h-screen">
+
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 sticky top-0 h-screen z-40">
+        <!-- 🏷️ REBRANDING: LOGO BMKG & NAMA BARU -->
+        <div class="flex items-center gap-3 px-2 py-2">
+            <div class="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center p-1.5 shadow-sm shrink-0">
+                <img src="logo_bmkg.png" alt="Logo BMKG" class="w-full h-full object-contain">
+            </div>
+            <div>
+                <h1 class="text-base font-black text-slate-900 tracking-tight leading-tight">WAKT</h1>
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">COMMAND CENTER</p>
+            </div>
+        </div>
+        <nav class="flex-1 p-4 space-y-6 overflow-y-auto">
+            <div>
+                <span class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-2">Workspace</span>
+                <button onclick="switchView('view-beranda')" id="nav-beranda" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all bg-blue-50 text-blue-600 border-r-4 border-blue-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>Beranda Utama</button>
+            </div>
+            <div>
+                <span class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-2">Generator Engine</span>
+                <div class="space-y-1">
+                    <button onclick="switchView('view-prakicu')" id="nav-prakicu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>Prakicu Harian</button>
+                    <button onclick="switchView('view-tafor')" id="nav-tafor" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l92-7-9-7-9 7v7zm0 0l-9-7 9-7 9 7v7z" /></svg>TAFOR WAKT</button>
+                    <!-- 🟢 MENU BARU: HOTSPOT -->
+                    <button onclick="switchView('view-hotspot')" id="nav-hotspot" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+                        </svg>
+                        Informasi Hotspot
+                    </button>
+                </div>
+            </div>
+            <div>
+                <span class="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-2">Data Storage & Evaluation</span>
+                <div class="space-y-1">
+                    <button onclick="switchView('view-database')" id="nav-database" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.58 4 8 4s8-1.79 8-4" /></svg>Log Database WAKT</button>
+                    <button onclick="switchView('view-verifikasi')" id="nav-verifikasi" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Verifikasi TAF
+                    </button>
+                    <button onclick="switchView('view-labul')" id="nav-labul" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Laporan Bulanan
+                    </button>
+                    <button onclick="switchView('view-acs')" id="nav-acs" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        Konverter ACS
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-center">
+            <button id="btn-dark-mode" class="w-12 h-12 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-white rounded-full transition-all shadow-md text-xl" title="Ubah Mode Layar">
+                <span id="ikon-dark">🌙</span> 
+            </button>
+        </div>
+        
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center gap-3 w-7/12 overflow-hidden">
+                <span class="bg-blue-600 text-white text-[10px] font-black uppercase px-2 py-1 rounded-md shrink-0 shadow-sm">Live Ticker</span>
+                <div class="text-xs font-bold text-slate-600 bg-slate-50 px-4 py-1.5 rounded-lg border w-full flex items-center h-8 shadow-inner">
+                    <marquee id="live-ticker-text" scrollamount="5" class="w-full tracking-wide text-blue-800 font-mono">SISTEM AKTIF - MENUNGGU DATA SINKRONISASI...</marquee>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 text-xs font-bold text-slate-500 bg-slate-100 border px-4 py-1.5 rounded-lg shadow-inner">
+                    <div>🕒 UTC: <span id="txtClockUTC" class="text-blue-600 font-mono text-sm">00:00:00</span></div>
+                    <div class="text-slate-300">|</div>
+                    <div>⏰ WIT: <span id="txtClockWIT" class="text-slate-700 font-mono text-sm">00:00:00</span></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 md:p-6 flex-1 overflow-y-auto bg-slate-50/50">
+            <section id="view-beranda" class="space-y-10 max-w-5xl mx-auto py-8 text-center">
+                
+                <div>
+                    <h2 class="text-4xl font-black text-slate-900 tracking-tight">Welcome to <span class="text-blue-600">Command Center</span></h2>
+                    <p class="text-slate-500 text-sm max-w-xl mx-auto mt-4">Platform terintegrasi untuk pembuatan informasi cuaca harian dan sandi penerbangan Stasiun Meteorologi Kelas III Tanah Merah (WAKT).</p>
+                </div>
+
+                <div class="max-w-xs mx-auto mt-2 bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2">
+                    <span class="text-xs font-black text-slate-500 uppercase pl-2 shrink-0">Bulan:</span>
+                    <input type="month" id="dash-filter-bulan" onchange="refreshDashboardData()" class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-bold text-slate-700 w-full outline-none focus:border-blue-600 transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4 text-left hover:shadow-md transition-all">
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg></div>
+                        <div>
+                            <div class="text-2xl font-black text-slate-800 font-mono" id="dash-metar">0</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">METAR/SPECI</div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4 text-left hover:shadow-md transition-all">
+                        <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg></div>
+                        <div>
+                            <div class="text-2xl font-black text-slate-800 font-mono" id="dash-taf">0</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Total TAFOR</div>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 shadow-sm flex items-center gap-4 text-left hover:shadow-md transition-all relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-emerald-200/50 rounded-full blur-xl"></div>
+                        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg></div>
+                        <div>
+                            <div class="text-2xl font-black text-emerald-600 font-mono" id="dash-akurasi">0.0%</div>
+                            <div class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mt-0.5">Akurasi TAFOR</div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4 text-left hover:shadow-md transition-all">
+                        <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></div>
+                        <div class="overflow-hidden">
+                            <div class="text-sm font-black text-slate-800 font-mono mt-1" id="dash-sync">-</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Sync Terakhir</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="max-w-4xl mx-auto px-4 mt-8">
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden text-left hover:shadow-md transition-all p-6">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                Monitoring Sandi Realtime (5 Terakhir)
+                            </h3>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Auto-Sync
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <div class="flex items-center gap-2 pb-2 mb-2 border-b border-slate-100">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                    <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider font-sans">METAR & SPECI Aktual</span>
+                                </div>
+                                <div id="dashboard-metar-list" class="space-y-2 text-xs">
+                                    <p class="text-slate-400 font-sans py-2 text-center italic">Memuat METAR...</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center gap-2 pb-2 mb-2 border-b border-slate-100">
+                                    <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                    <span class="text-[11px] font-black text-slate-500 uppercase tracking-wider font-sans">TAFOR Prakiraan</span>
+                                </div>
+                                <div id="dashboard-taf-list" class="space-y-2 text-xs">
+                                    <p class="text-slate-400 font-sans py-2 text-center italic">Memuat TAFOR...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </section>
+            
+            <section id="view-prakicu" class="hidden space-y-4">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div class="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 max-h-[780px] overflow-y-auto custom-scroll panel-input-box">
+                        <div class="border-b border-slate-100 pb-2"><h3 class="text-base font-black text-slate-900 tracking-tight">Input Data Cuaca Harian</h3></div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-600 block mb-1 mt-2">Pilih Tanggal:</label>
+                            <input type="date" id="inPilihTanggal" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 mb-2 outline-none focus:border-blue-600">
+
+                            <div class="flex gap-2 mb-2">
+                                <div class="w-1/3">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Hari:</label>
+                                    <input type="text" id="inHari" class="w-full bg-slate-100 border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-500 cursor-not-allowed" readonly>
+                                </div>
+                                <div class="w-2/3">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Teks Tanggal:</label>
+                                    <input type="text" id="inTanggal" class="w-full bg-slate-100 border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-500 cursor-not-allowed" readonly>
+                                </div>
+                            </div>
+                            <label>Kondisi Cuaca Umum:</label><input type="text" id="inUmum" value="berawan">
+                            <label>Potensi Hujan:</label><select id="inHujan"><option value="ringan">Ringan</option><option value="sedang">Sedang</option><option value="lebat">Lebat</option><option value="">Tidak Ada Hujan</option></select>
+                            <hr class="my-4">
+                            <label>Cuaca Pagi:</label><select id="inCuacaPagi"><option value="Berawan">Berawan</option><option value="Cerah">Cerah</option><option value="Cerah_Berawan">Cerah Berawan</option><option value="Hujan_Ringan">Hujan Ringan</option><option value="Hujan_Sedang">Hujan Sedang</option><option value="Hujan_Lebat">Hujan Lebat</option><option value="Hujan_Lokal">Hujan Lokal</option><option value="Kabut">Kabut</option></select>
+                            <label>Cuaca Siang:</label><select id="inCuacaSiang"><option value="Hujan_Ringan">Hujan Ringan</option><option value="Berawan">Berawan</option><option value="Cerah">Cerah</option><option value="Cerah_Berawan">Cerah Berawan</option><option value="Hujan_Sedang">Hujan Sedang</option><option value="Hujan_Lebat">Hujan Lebat</option><option value="Hujan_Lokal">Hujan Lokal</option><option value="Kabut">Kabut</option></select>
+                            <label>Cuaca Malam:</label><select id="inCuacaMalam"><option value="Hujan_Lokal_Malam">Hujan Lokal</option><option value="Hujan_Ringan">Hujan Ringan</option><option value="Hujan_Sedang">Hujan Sedang</option><option value="Hujan_Lebat">Hujan Lebat</option><option value="Berawan_Malam">Berawan</option><option value="Cerah_Malam">Cerah</option><option value="Cerah_Berawan_Malam">Cerah Berawan</option><option value="Kabut_Malam">Kabut</option></select>
+                            <label>Cuaca Dini Hari:</label><select id="inCuacaDiniHari"><option value="Berawan_Malam">Berawan</option><option value="Hujan_Lokal_Malam">Hujan Lokal</option><option value="Hujan_Ringan">Hujan Ringan</option><option value="Hujan_Sedang">Hujan Sedang</option><option value="Hujan_Lebat">Hujan Lebat</option><option value="Cerah_Malam">Cerah</option><option value="Cerah_Berawan_Malam">Cerah Berawan</option><option value="Kabut_Malam">Kabut</option></select>
+                            <hr class="my-4">
+                            <label>Suhu Udara (°C):</label><div class="flex gap-2"><input type="text" id="inSuhuMin" value="24"><input type="text" id="inSuhuMax" value="30"></div>
+                            <label>Kelembapan (%):</label><div class="flex gap-2"><input type="text" id="inLembapMin" value="60"><input type="text" id="inLembapMax" value="95"></div>
+                            <label>Arah Angin (Dari - Menuju):</label><div class="flex gap-2"><input type="text" id="inSuhuMin" style="display:none;"><input type="text" id="inAnginDari" value="Timur"><input type="text" id="inAnginMenuju" value="Selatan"></div>
+                            <label>Kecepatan Angin (KM/JAM):</label><input type="text" id="inAnginSpeed" value="05 - 20">
+                            <label>Peringatan Dini:</label><input type="text" id="inPeringatan" value="NIL">
+                            <hr class="my-4">
+                            <label>Preview Paragraf 1:</label><textarea id="inNarasi1" rows="6"></textarea>
+                            <label>Preview Paragraf 2:</label><textarea id="inNarasi2" rows="6"></textarea>
+                        </div>
+                        <div class="pt-2 space-y-2">
+                            <button id="btnDownloadGambar" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-xs uppercase shadow-md">Download Gambar (Slide 2)</button>
+                            <button id="btnDownloadPDF" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl text-xs uppercase shadow-md">Download 4 Slide (PDF)</button>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8 bg-slate-100 border border-slate-200 rounded-2xl p-6 shadow-inner max-h-[780px] overflow-y-auto custom-scroll flex flex-col items-center">
+                        <div id="slide1" class="slide-cuaca"><img src="Opening.png" class="bg-template"></div>
+                        <div id="slide2" class="slide-cuaca">
+                            <img src="Template_kosong.png" class="bg-template">
+                            <div id="outTanggal2" class="teks-absolut" style="top: 11%; left: 15.6%; font-family: 'times new roman', sans-serif; font-size: 20px; font-weight: bold; color: rgb(0, 0, 0);">BERLAKU UNTUK 13 MEI 2026</div>
+                            
+                            <div class="teks-absolut" style="top: 18%; left: 6%; width: 20%; text-align: center; font-family: 'times new roman', sans-serif; font-size: 20px; color: black; font-weight: bold;">PAGI</div>
+                            <div class="teks-absolut" style="top: 18%; left: 30%; width: 20%; text-align: center; font-family: 'times new roman', sans-serif; font-size: 20px; color: black; font-weight: bold;">SIANG</div>
+                            <div class="teks-absolut" style="top: 46%; left: 6%; width: 20%; text-align: center; font-family: 'times new roman', sans-serif; font-size: 20px; color: black; font-weight: bold;">MALAM</div>
+                            <div class="teks-absolut" style="top: 46%; left: 30%; width: 20%; text-align: center; font-family: 'times new roman', sans-serif; font-size: 20px; color: black; font-weight: bold;">DINI HARI</div>
+                            <img id="iconPagi" src="Berawan.png" class="teks-absolut" style="top: 24%; left: 11%; width: 11%;">
+                            <div id="teksPagi" class="teks-absolut" style="top: 41%; left: 6%; width: 20%; text-align: center; font-family: 'times new roman', sans-serif; font-size: 18px; color: red; font-weight: bold;">BERAWAN</div>
+                            
+                            <img id="iconSiang" src="Hujan_Ringan.png" class="teks-absolut" style="top: 24%; left: 34.5%; width: 11%;">
+                            <div id="teksSiang" class="teks-absolut" style="top: 41%; left: 30%; width: 20%; text-align: center; font-family: 'times new roman', sans-serif; font-size: 18px; color: red; font-weight: bold;">HUJAN RINGAN</div>
+                            
+                            <img id="iconMalam" src="Hujan_Lokal_Malam.png" class="teks-absolut" style="top: 52%; left: 11%; width: 11%;">
+                            <div id="teksMalam" class="teks-absolut" style="top: 69%; left: 6%; width: 20%; text-align: center; font-family: 'times new roman', sans-serif; font-size: 18px; color: red; font-weight: bold;">HUJAN LOKAL</div>
+                            
+                            <img id="iconDiniHari" src="Berawan_Malam.png" class="teks-absolut" style="top: 52%; left: 34.5%; width: 11%;">
+                            <div id="teksDiniHari" class="teks-absolut" style="top: 69%; left: 30%; width: 20%; text-align: center; font-family: 'times new roman', sans-serif; font-size: 18px; color: red; font-weight: bold;">BERAWAN</div>
+                            
+                            <div id="outSuhu" class="teks-absolut" style="top: 24%; left: 71%; font-weight: bold; font-family: 'times new roman', sans-serif; font-size: 25px;">24 - 30°C</div>
+                            <div id="outLembap" class="teks-absolut" style="top: 31%; left: 71%; font-weight: bold; font-family: 'times new roman', sans-serif; font-size: 25px;">60 - 95%</div>
+                            <div id="outAngin" class="teks-absolut" style="top: 41.7%; left: 65%; width: 25%; text-align: center; font-weight: bold; font-family: 'times new roman', sans-serif; font-size: 20px; line-height: 1.5;">TIMUR - SELATAN<br>05 - 20 KM/JAM</div>
+                            <div id="outPeringatan" class="teks-absolut" style="top: 60%; left: 62%; width: 30%; text-align: center; color: black; font-family: 'times new roman', sans-serif; font-weight: bold; font-size: 12px;">NIL</div>
+                        </div>
+                        <div id="slide3" class="slide-cuaca">
+                            <img src="Template_Narasi.png" class="bg-template">
+                            <div id="outTanggal3" class="teks-absolut" style="top: 11%; left: 15.6%; font-family: 'times new roman', sans-serif; font-size: 20px; font-weight: bold; color: rgb(0, 0, 0);">BERLAKU UNTUK 13 MEI 2026</div>
+                            <div id="outNarasi1" class="teks-absolut" style="top: 20%; left: 9%; width: 80%; color: black; font-family: 'times new roman', sans-serif; font-size: 19px; line-height: 1.6; text-align: justify;"></div>
+                            <div id="outNarasi2" class="teks-absolut" style="top: 60%; left: 9%; width: 80%; color: black; font-family: 'times new roman', sans-serif; font-size: 19px; line-height: 1.6; text-align: justify;"></div>
+                        </div>
+                        <div id="slide4" class="slide-cuaca"><img src="Ending.png" class="bg-template"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-tafor" class="hidden max-w-5xl mx-auto flex flex-col gap-6 panel-input-box">
+                <div class="bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 shadow-sm flex flex-col gap-8">
+                    
+                    <div>
+                        <div class="text-sm font-black text-slate-800 flex items-center gap-2.5 border-b border-slate-100 pb-3 mb-5 tracking-widest uppercase">
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div> KONFIGURASI SANDI UTAMA
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Type</label>
+                                <select id="inType" onchange="ubahModeSandiTaf()" class="bg-blue-50 border-0 ring-1 ring-blue-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 font-bold text-blue-700 outline-none transition-all cursor-pointer shadow-inner">
+                                    <option value="TAF" selected>TAF (Normal)</option>
+                                    <option value="TAF AMD">TAF AMD (Revisi)</option>
+                                    <option value="TAF COR">TAF COR (Koreksi)</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ICAO</label>
+                                <input type="text" id="inIcao" value="WAKT" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-bold text-slate-900 outline-none cursor-not-allowed" readonly>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Waktu Rilis</label>
+                                <div class="flex gap-2">
+                                    <select id="inRilisBulan" onchange="perbaruiDropdownTanggal()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer w-full"></select>
+                                    <select id="inRilisTgl" onchange="hitungOtomatisWaktuBerlaku()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer w-full"></select>
+                                    <select id="inRilisJam" onchange="hitungOtomatisWaktuBerlaku()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer w-full">
+                                        <option value="23:00 UTC" selected>23:00</option><option value="05:00 UTC">05:00</option><option value="11:00 UTC">11:00</option><option value="17:00 UTC">17:00</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Berlaku (24 Jam)</label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="text" id="inValidTglStart" value="02" class="w-full text-center bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2 text-sm text-slate-500 font-bold outline-none" disabled>
+                                    <input type="text" id="inValidJamStart" value="00" class="w-full text-center bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2 text-sm text-slate-500 font-bold outline-none" disabled>
+                                    <span class="text-slate-300 font-black">/</span>
+                                    <input type="text" id="inValidTglEnd" value="03" class="w-full text-center bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2 text-sm text-slate-500 font-bold outline-none" disabled>
+                                    <input type="text" id="inValidJamEnd" value="00" class="w-full text-center bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2 text-sm text-slate-500 font-bold outline-none" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-sm font-black text-slate-800 flex items-center gap-2.5 border-b border-slate-100 pb-3 mb-5 tracking-widest uppercase">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div> GENERAL DATA
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            
+                            <div class="bg-white shadow-sm hover:shadow-md ring-1 ring-slate-100 rounded-2xl p-6 transition-all duration-300 flex flex-col gap-5">
+                                <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                    <span class="text-blue-500 font-serif text-sm">❖</span> Angin & Visibility
+                                </div>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div class="flex flex-col gap-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Arah (Deg)</label><input type="text" id="inWindDir" value="0" placeholder="0/VRB" oninput="prosesGenerateTaforSam()" class="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-500 outline-none transition-all"></div>
+                                    <div class="flex flex-col gap-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Speed (KT)</label><input type="number" id="inWindSpd" value="0" oninput="prosesGenerateTaforSam()" class="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-500 outline-none transition-all"></div>
+                                    <div class="flex flex-col gap-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gust (KT)</label><input type="number" id="inWindGust" placeholder="Kosong" oninput="prosesGenerateTaforSam()" class="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-500 outline-none transition-all"></div>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Prevailing Visibility (Meter - Tabel IV)</label>
+                                    <select id="inVisibility" onchange="prosesGenerateTaforSam()" class="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-500 outline-none transition-all cursor-pointer">
+                                        <option value="9999" selected>9999</option>
+                                        <option value="9000">9000</option><option value="8000">8000</option><option value="7000">7000</option><option value="6000">6000</option><option value="5000">5000</option>
+                                        <option value="4000">4000</option><option value="3000">3000</option><option value="2500">2500</option><option value="2000">2000</option><option value="1500">1500</option>
+                                        <option value="1200">1200</option><option value="1000">1000</option><option value="0800">0800</option><option value="0600">0600</option><option value="0500">0500</option>
+                                        <option value="0400">0400</option><option value="0300">0300</option><option value="0200">0200</option><option value="0100">0100</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="bg-white shadow-sm hover:shadow-md ring-1 ring-slate-100 rounded-2xl p-6 transition-all duration-300 flex flex-col gap-5">
+                                <div class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                                    <span class="text-emerald-500 font-serif text-sm">❖</span> Cuaca & Awan
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cuaca Pengamatan</label>
+                                    <select id="inCuacaGroup" onchange="prosesGenerateTaforSam()" class="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer">
+                                        <option value="NIL" selected>- (Tidak Ada / Cerah) -</option>
+                                        <optgroup label="PRESIPITASI"><option value="DZ">DZ (Gerimis)</option><option value="RA">RA (Hujan)</option><option value="SHRA">SHRA (Hujan Shower)</option><option value="TSRA">TSRA (Badai Petir dgn Hujan)</option><option value="TS">TS (Badai Petir tanpa Hujan)</option></optgroup>
+                                        <optgroup label="OBSCURATION"><option value="BR">BR (Halimun)</option><option value="FG">FG (Kabut)</option><option value="HZ">HZ (Kekaburan Udara)</option></optgroup>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-12 gap-3">
+                                    <div class="col-span-4 flex flex-col gap-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jumlah</label><select id="inAwanJumlah" onchange="prosesGenerateTaforSam()" class="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"><option value="SCT" selected>SCT</option><option value="FEW">FEW</option><option value="BKN">BKN</option><option value="OVC">OVC</option><option value="NSC">NSC</option></select></div>
+                                    <div class="col-span-5 flex flex-col gap-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tinggi (FT)</label><input type="text" id="inAwanTinggi" value="900" oninput="prosesGenerateTaforSam()" class="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-none transition-all"></div>
+                                    <div class="col-span-3 flex flex-col gap-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipe</label><select id="inAwanType" onchange="prosesGenerateTaforSam()" class="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer"><option value="NIL" selected>-</option><option value="CB">CB</option><option value="TCU">TCU</option></select></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-sm font-black text-slate-800 flex items-center gap-2.5 border-b border-slate-100 pb-3 mb-5 tracking-widest uppercase">
+                            <div class="w-2 h-2 rounded-full bg-amber-500"></div> TREND EVOLUTION DATA
+                        </div>
+                        <div class="grid grid-cols-1 gap-5">
+                            
+                            <div class="bg-white shadow-sm hover:shadow-md ring-1 ring-slate-100 rounded-2xl p-6 transition-all duration-300 flex flex-col gap-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest w-48 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Jenis Trend 1</label>
+                                    <select id="inTrend1Type" onchange="handleTrendToggleVisibility(1)" class="w-full sm:w-64 font-bold text-slate-700 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer transition-all">
+                                        <option value="NIL" selected>-- Tidak Ada Trend --</option><option value="TEMPO">TEMPO (Sementara)</option><option value="BECMG">BECMG (Menjadi)</option><option value="FM">FM (Berubah Total Sejak)</option><option value="PROB30 TEMPO">PROB30 TEMPO</option><option value="PROB40 TEMPO">PROB40 TEMPO</option>
+                                    </select>
+                                </div>
+                                <div id="panelTrend1Options" class="border-t border-slate-100 pt-5 flex flex-col gap-4" style="display: none;">
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Periode Waktu (Jam)</label><div class="flex items-center gap-2 w-full sm:w-auto"><select id="inTrend1JamStart" class="flex-1 sm:w-24 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"></select><span class="text-slate-300 font-bold">/</span><select id="inTrend1JamEnd" class="flex-1 sm:w-24 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"></select></div></div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Angin Baru (Opsional)</label><div class="grid grid-cols-3 gap-2 w-full sm:w-96"><input type="text" id="inTrend1WindDir" placeholder="Arah (360/VRB)" oninput="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"><input type="number" id="inTrend1WindSpd" placeholder="Speed (KT)" oninput="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"><input type="number" id="inTrend1WindGust" placeholder="Gust (KT)" oninput="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"></div></div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Visibility Baru</label><select id="inTrend1Vis" onchange="prosesGenerateTaforSam()" class="w-full sm:w-64 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"><option value="NIL" selected>- (Sama / Tidak Berubah) -</option><option value="9999">9999</option><option value="9000">9000</option><option value="8000">8000</option><option value="7000">7000</option><option value="6000">6000</option><option value="5000">5000</option><option value="4000">4000</option><option value="3000">3000</option><option value="2500">2500</option><option value="2000">2000</option><option value="1500">1500</option><option value="1200">1200</option><option value="1000">1000</option><option value="0800">0800</option><option value="0600">0600</option><option value="0500">0500</option><option value="0400">0400</option><option value="0300">0300</option><option value="0200">0200</option><option value="0100">0100</option></select></div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Cuaca Baru</label><select id="inTrend1Cuaca" onchange="prosesGenerateTaforSam()" class="w-full sm:w-64 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"><option value="NIL" selected>- (Sama) -</option><option value="NSW">NSW (Cuaca Signifikan Berhenti)</option><optgroup label="PRESIPITASI"><option value="DZ">DZ (Gerimis)</option><option value="RA">RA (Hujan)</option><option value="SHRA">SHRA (Hujan Shower)</option><option value="TSRA">TSRA (Badai Petir dgn Hujan)</option><option value="TS">TS (Badai Petir tanpa Hujan)</option></optgroup><optgroup label="OBSCURATION"><option value="BR">BR (Halimun)</option><option value="FG">FG (Kabut)</option><option value="HZ">HZ (Kekaburan Udara)</option></optgroup></select></div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Awan Baru</label><div class="grid grid-cols-3 gap-2 w-full sm:w-96"><select id="inTrend1AwanJumlah" onchange="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"><option value="NIL" selected>- (Sama) -</option><option value="FEW">FEW</option><option value="SCT">SCT</option><option value="BKN">BKN</option><option value="OVC">OVC</option><option value="NSC">NSC</option></select><input type="text" id="inTrend1AwanTinggi" placeholder="2000" oninput="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"><select id="inTrend1AwanType" onchange="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"><option value="NIL" selected>-</option><option value="CB">CB</option><option value="TCU">TCU</option></select></div></div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white shadow-sm hover:shadow-md ring-1 ring-slate-100 rounded-2xl p-6 transition-all duration-300 flex flex-col gap-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-widest w-48 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Jenis Trend 2</label>
+                                    <select id="inTrend2Type" onchange="handleTrendToggleVisibility(2)" class="w-full sm:w-64 font-bold text-slate-700 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer transition-all">
+                                        <option value="NIL" selected>-- Tidak Ada Trend --</option><option value="TEMPO">TEMPO (Sementara)</option><option value="BECMG">BECMG (Menjadi)</option><option value="FM">FM (Berubah Total Sejak)</option>
+                                    </select>
+                                </div>
+                                <div id="panelTrend2Options" class="border-t border-slate-100 pt-5 flex flex-col gap-4" style="display: none;">
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Periode Waktu (Jam)</label><div class="flex items-center gap-2 w-full sm:w-auto"><select id="inTrend2JamStart" class="flex-1 sm:w-24 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"></select><span class="text-slate-300 font-bold">/</span><select id="inTrend2JamEnd" class="flex-1 sm:w-24 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"></select></div></div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Angin Baru (Opsional)</label><div class="grid grid-cols-3 gap-2 w-full sm:w-96"><input type="text" id="inTrend2WindDir" placeholder="Arah (360/VRB)" oninput="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"><input type="number" id="inTrend2WindSpd" placeholder="Speed (KT)" oninput="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"><input type="number" id="inTrend2WindGust" placeholder="Gust (KT)" oninput="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"></div></div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Visibility Baru</label><select id="inTrend2Vis" onchange="prosesGenerateTaforSam()" class="w-full sm:w-64 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"><option value="NIL" selected>- (Sama / Tidak Berubah) -</option><option value="9999">9999</option><option value="9000">9000</option><option value="8000">8000</option><option value="7000">7000</option><option value="6000">6000</option><option value="5000">5000</option><option value="4000">4000</option><option value="3000">3000</option><option value="2500">2500</option><option value="2000">2000</option><option value="1500">1500</option><option value="1200">1200</option><option value="1000">1000</option><option value="0800">0800</option><option value="0600">0600</option><option value="0500">0500</option><option value="0400">0400</option><option value="0300">0300</option><option value="0200">0200</option><option value="0100">0100</option></select></div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Cuaca Baru</label><select id="inTrend2Cuaca" onchange="prosesGenerateTaforSam()" class="w-full sm:w-64 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"><option value="NIL" selected>- (Sama) -</option><option value="NSW">NSW (Cuaca Signifikan Berhenti)</option><optgroup label="PRESIPITASI"><option value="DZ">DZ (Gerimis)</option><option value="RA">RA (Hujan)</option><option value="SHRA">SHRA (Hujan Shower)</option><option value="TSRA">TSRA (Badai Petir dgn Hujan)</option><option value="TS">TS (Badai Petir tanpa Hujan)</option></optgroup><optgroup label="OBSCURATION"><option value="BR">BR (Halimun)</option><option value="FG">FG (Kabut)</option><option value="HZ">HZ (Kekaburan Udara)</option></optgroup></select></div>
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-48">Awan Baru</label><div class="grid grid-cols-3 gap-2 w-full sm:w-96"><select id="inTrend2AwanJumlah" onchange="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"><option value="NIL" selected>- (Sama) -</option><option value="FEW">FEW</option><option value="SCT">SCT</option><option value="BKN">BKN</option><option value="OVC">OVC</option><option value="NSC">NSC</option><input type="text" id="inTrend2AwanTinggi" placeholder="2000" oninput="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500"><select id="inTrend2AwanType" onchange="prosesGenerateTaforSam()" class="bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"><option value="NIL" selected>-</option><option value="CB">CB</option><option value="TCU">TCU</option></select></div></div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-4 shadow-sm">
+                       <h4 class="font-black text-amber-800 mb-2 flex items-center gap-2">
+                            ⏱️ AUTOSEND TAFOR
+                        </h4>
+                        <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
+                            <div class="flex items-center gap-2 bg-white border border-amber-300 px-3 py-2 rounded-lg">
+                                <span class="text-xs font-bold text-amber-700">Jam Tembak (Lokal):</span>
+                                <input type="time" id="waktu-autosend" class="text-sm font-bold text-slate-800 outline-none bg-transparent">
+                            </div>
+                            
+                            <button onclick="aktifkanAutosend()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow-md transition-all">
+                                🚀 Aktifkan Autosend
+                            </button>
+                            
+                            <span id="status-autosend" class="text-xs font-bold text-slate-500 bg-white px-3 py-2 rounded-lg border flex-1 text-center">
+                                Menunggu instruksi...
+                            </span>
+                            
+                            <button onclick="batalkanAutosend()" id="btn-batal-autosend" class="hidden bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 px-3 rounded-lg text-xs transition-all">
+                                ❌ Batal
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-amber-600 mt-2 font-medium leading-tight">
+                            *Peringatan: Selama Autosend, jangan tutup halaman web and pastikan laptop tidak masuk mode Sleep/Standby.
+                        </p>
+                    </div>
+                    <div class="flex flex-col gap-4 mt-2">
+                        <button id="btnKirimBMKG" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black rounded-2xl py-4 text-sm uppercase tracking-widest shadow-lg shadow-emerald-500/30 flex justify-center items-center gap-2 transition-all transform hover:-translate-y-0.5" onclick="kirimKeBMKGSoft()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                            KIRIM TAFOR KE GTS
+                        </button>
+
+                        <div class="hidden bg-red-50 ring-1 ring-red-200 text-red-700 p-5 rounded-2xl text-xs shadow-sm" id="typoValidationCard"><ul id="typoValidationList" class="list-disc pl-5 font-semibold"></ul></div>
+
+                        <div class="bg-slate-900 ring-1 ring-slate-800 shadow-2xl rounded-2xl p-6 relative group overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none"></div>
+                            <div class="absolute top-4 right-4 flex gap-2 z-10 opacity-80 group-hover:opacity-100 transition-opacity">
+                                <button class="bg-slate-800 text-slate-300 font-bold px-4 py-2 text-xs rounded-xl hover:bg-slate-700 hover:text-white transition-all ring-1 ring-slate-700 shadow-md flex items-center gap-2" onclick="salinKodeKeClipboard()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> Salin Teks
+                                </button>
+                            </div>
+                            <div class="font-mono text-[15px] leading-relaxed text-emerald-400 font-bold whitespace-pre-wrap min-h-[80px] pt-10" id="taforOutputBox">Hasil...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 shadow-sm mt-2">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-5">
+                        <div class="text-sm font-black text-slate-800 flex items-center gap-2.5 tracking-widest uppercase">
+                            <div class="w-2 h-2 rounded-full bg-blue-500"></div> LOG HISTORY TAFOR
+                        </div>
+                        <button class="text-red-500 bg-red-50 hover:bg-red-100 transition-all font-bold text-xs px-4 py-2 rounded-xl" onclick="kosongkanSemuaLogHistory()">Clear History</button>
+                    </div>
+                    <div class="w-full overflow-x-auto custom-scroll"><table class="w-full border-collapse text-xs"><tbody id="recapTableBody" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody></table></div>
+                </div>
+            </section>
+            
+            <!-- 🟢 SUNTIKAN KOTAK HALAMAN HOTSPOT BARU -->
+            <section id="view-hotspot" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-6 panel-input-box max-w-4xl mx-auto">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">🔥 GENERATOR LAPORAN HOTSPOT</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Sistem Generator data titik panas otomatis untuk wilayah Kabupaten Boven Digoel.</p>
+                    </div>
+                    
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
+                        <form id="formHotspot">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tanggal Laporan:</label>
+                                    <input type="date" id="input_tgl_hotspot" class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-blue-600" required>
+                                </div>
+                                <div>
+    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Nomor Surat:</label>
+    <!-- Ganti placeholder menjadi value agar langsung terisi -->
+    <input type="text" id="input_nomor_hotspot" class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-blue-600" value="B/ME.02.03/15/KTMH/VII/2026" required>
+</div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Prakirawan Bertugas:</label>
+                                    <select id="input_prakirawan_hotspot" class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-blue-600">
+                                        <option value="Eka Alfred Sagala, S.Tr., M.Han.">Eka Alfred Sagala, S.Tr., M.Han.</option>
+                                        <option value="Tiar Novan Haidar, S.Tr">Tiar Novan Haidar, S.Tr</option>
+                                        <option value="Eleazar Bangalino, S.Tr">Eleazar Bangalino, S.Tr</option>
+                                        <option value="Melan Rivaldo Ayomi, S.Tr">Melan Rivaldo Ayomi, S.Tr</option>
+                                        <option value="Rizki Syahputra, S.Tr">Rizki Syahputra, S.Tr</option>
+                                        <option value="Oni Dwi Saputra, S.Tr">Oni Dwi Saputra, S.Tr</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-black text-sm py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 uppercase tracking-widest mt-6" onclick="tarikDataHotspot()" id="btnGenerateHotspot">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /></svg>
+                                Generate Dokumen Laporan
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-database" class="hidden space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+        <div><h3 class="text-lg font-black text-slate-900">REKAP DATA HISTORIS KUSTOM</h3></div>
+        <div class="flex items-center gap-4">
+            <input type="month" id="input-bulan" class="bg-slate-50 border p-1.5 rounded-xl">
+            
+            <div class="inline-flex rounded-xl shadow-sm" role="group">
+                <button onclick="bukaRadarMetarKosong()" class="bg-amber-500 hover:bg-amber-600 transition-all text-white font-bold text-xs px-3 py-2.5 rounded-l-xl border-r border-amber-600 flex items-center gap-1.5" title="Cari METAR Bolong">
+                    Radar METAR
+                </button>
+                <button onclick="bukaRadarTafKosong()" class="bg-orange-500 hover:bg-orange-600 transition-all text-white font-bold text-xs px-3 py-2.5 rounded-r-xl flex items-center gap-1.5" title="Cari TAFOR Bolong">
+                    Radar TAFOR
+                </button>
+            </div>
+
+            <button onclick="togglePanelManualDb()" class="bg-amber-500 hover:bg-amber-600 transition-all text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm">
+                ➕ Input Manual
+            </button>
+
+                        <div class="inline-flex rounded-xl shadow-sm" role="group">
+                            <button onclick="mulaiSinkronisasiInternetGrosir('metar')" class="bg-blue-600 hover:bg-blue-700 transition-all text-white font-bold text-xs px-4 py-2.5 rounded-l-xl border-r border-blue-700 flex items-center gap-1.5" title="Tarik Khusus METAR/SPECI">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                Tarik METAR
+                            </button>
+                            <button onclick="mulaiSinkronisasiInternetGrosir('taf')" class="bg-indigo-600 hover:bg-indigo-700 transition-all text-white font-bold text-xs px-4 py-2.5 rounded-r-xl" title="Tarik Khusus TAFOR">
+                                Tarik TAFOR
+                            </button>
+                        </div>
+                        <span id="total-row" class="font-mono font-bold">0</span>
+                        <button onclick="downloadCSV()" class="bg-emerald-600 hover:bg-emerald-700 transition-all text-white font-bold text-xs px-4 py-2.5 rounded-xl">Download CSV</button>
+                    </div>
+                </div>
+
+                <div id="panel-input-manual-db" class="hidden bg-amber-50/50 border border-amber-200 p-5 rounded-2xl shadow-inner transition-all">
+                    <label class="text-xs font-black text-amber-700 uppercase tracking-widest mb-2 block">
+                        <span class="bg-amber-200 text-amber-800 px-2 py-0.5 rounded-md mr-2">PINTU DARURAT</span> 
+                        Paste Sandi METAR / SPECI / TAF (Akhiri dengan "=")
+                    </label>
+                    <textarea id="in-manual-db" rows="2" class="w-full border border-amber-200 rounded-xl p-3 font-mono text-sm mb-3 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm" placeholder="Contoh: METAR WAKT 150000Z 00000KT 9999 FEW020 28/25 Q1010="></textarea>
+                    <div class="flex justify-end gap-2">
+                        <button onclick="togglePanelManualDb()" class="px-5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all">Batal</button>
+                        <button onclick="simpanLogManualDb()" class="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition-all">Simpan ke Database</button>
+                    </div>
+                </div>
+
+                <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto max-h-[580px] custom-scroll">
+                        <div class="flex border-b border-slate-200 mb-4 gap-2">
+                            <button onclick="setLogTab('METAR')" id="tab-log-metar" class="px-5 py-2.5 text-sm font-black border-b-2 border-blue-600 text-blue-600 transition-all flex items-center gap-2">
+                                METAR & SPECI <span id="total-metar" class="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                            </button>
+                            <button onclick="setLogTab('TAF')" id="tab-log-taf" class="px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 transition-all flex items-center gap-2">
+                                TAFOR <span id="total-taf" class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+                            </button>
+                        </div>
+                        <table class="w-full text-left border-collapse"><tbody id="tabel-log" class="divide-y text-xs font-mono font-bold text-slate-700"></tbody></table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-verifikasi" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4 panel-input-box">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">📊 VERIFIKASI TAFOR</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Sistem verifikasi TAFOR otomatis.</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2 bg-slate-50 border px-4 py-2 rounded-xl">
+                                <span class="text-xs font-bold text-slate-500 m-0">Bulan:</span>
+                                <input type="month" id="input-bulan-verif" class="bg-transparent text-sm font-bold text-slate-900 outline-none m-0 py-0">
+                            </div>
+                            
+                            <button onclick="muatMatrixDatabase()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-4 py-3 rounded-xl shadow-sm transition-all flex items-center gap-2" title="Muat Matrix dari Database">
+                                🔄 Muat
+                            </button>
+                            
+                            <button onclick="hitungVerifikasiOtomatisSatuKlik()" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-5 py-3 rounded-xl shadow-md transition-all">Verifikasi</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                        <label class="mb-2 text-blue-600 font-bold text-xs uppercase tracking-wider block">📥 Input Sandi TAFOR :</label>
+                        <textarea id="inTaforManual" rows="3" class="w-full border border-blue-200 rounded-lg p-3 font-mono text-sm leading-relaxed mb-3" placeholder="Paste sandi TAFOR di sini..."></textarea>
+                        
+                        <button onclick="togglePanelMetarDummy()" class="text-purple-600 font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5 hover:text-purple-700 transition-all mb-4 outline-none">
+                            <span class="bg-purple-100 px-2 py-1 rounded-md shadow-sm">➕ Buka Panel METAR Dummy</span>
+                        </button>
+
+                        <div id="panel-metar-dummy" class="hidden mb-4 border-l-2 border-purple-400 pl-3">
+                            <label class="mb-2 text-purple-600 font-bold text-[10px] uppercase tracking-wider flex items-center gap-2">
+                                INPUT METAR DUMMY :
+                            </label>
+                            <textarea id="in-metar-dummy" rows="2" class="w-full border border-purple-200 rounded-lg p-3 font-mono text-sm leading-relaxed mb-2 bg-purple-50/30 focus:ring-2 focus:ring-purple-500 outline-none transition-all shadow-inner" placeholder="Paste sandi METAR / SPECI yang hilang di sini..."></textarea>
+                            
+                            <button onclick="simpanMetarDummyKeMemori()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] px-4 py-2 rounded-lg shadow-sm transition-all uppercase tracking-wider">
+                                Simpan Dummy & Kosongkan Kotak
+                            </button>
+                        </div>
+
+                        <button onclick="suntikDataManualDanDownloadExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3.5 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 uppercase tracking-wider">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                            Download Excel (.XLSM)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 p-5 rounded-2xl grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-4 text-center shadow-sm items-center">
+                    <div><div class="text-[10px] font-bold text-slate-400 uppercase">1. Arah Angin</div><div id="v-dir" class="text-xl font-black text-blue-600 mt-0.5">0%</div></div>
+                    <div><div class="text-[10px] font-bold text-slate-400 uppercase">2. Kecepatan Angin</div><div id="v-spd" class="text-xl font-black text-blue-600 mt-0.5">0%</div></div>
+                    <div><div class="text-[10px] font-bold text-slate-400 uppercase">3. Visibility</div><div id="v-vis" class="text-xl font-black text-blue-600 mt-0.5">0%</div></div>
+                    <div><div class="text-[10px] font-bold text-slate-400 uppercase">4. Cuaca</div><div id="v-weather" class="text-xl font-black text-blue-600 mt-0.5">0%</div></div>
+                    <div><div class="text-[10px] font-bold text-slate-400 uppercase">5. Jumlah Awan</div><div id="v-cld-jml" class="text-xl font-black text-blue-600 mt-0.5">0%</div></div>
+                    <div><div class="text-[10px] font-bold text-slate-400 uppercase">6. Tinggi Awan</div><div id="v-cld-tgi" class="text-xl font-black text-blue-600 mt-0.5">0%</div></div>
+                    <div class="bg-blue-50/50 rounded-xl py-1 border border-blue-100"><div class="text-[10px] font-bold text-blue-600 uppercase">AKURASI TAF</div><div id="v-total" class="text-xl font-black text-slate-900">0%</div></div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-6 items-start">
+                    <div class="col-span-12 sm:col-span-2 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase block mb-3 text-center tracking-wider">Pilih Tanggal</span>
+                        <div class="grid grid-cols-4 sm:grid-cols-2 gap-1.5 max-h-[460px] overflow-y-auto custom-scroll" id="container-nav-hari-excel"></div>
+                    </div>
+                    <div class="col-span-12 sm:col-span-10 bg-white border border-slate-200 rounded-2xl shadow-sm p-6 overflow-x-auto custom-scroll min-h-[520px]">
+                        <div class="text-sm font-black text-slate-900 border-b pb-3 mb-4 flex justify-between items-center bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200/60">
+                            <span>📋 LEMBAR KERJA EVALUASI: <span id="label-hari-aktif-sheet" class="text-blue-600">TABEL 1</span></span>
+                            <span class="text-xs font-mono text-slate-400 font-bold" id="label-taf-header-sheet">Prakiraan: Waiting Command...</span>
+                        </div>
+                        <table class="w-full border border-slate-300 text-center font-medium text-xs table-fixed min-w-[1200px]">
+                            <thead>
+                                <tr class="bg-emerald-600 text-white font-bold border-b border-slate-300">
+                                    <th class="border-r border-slate-300 py-2 w-14" rowspan="2">Tanggal</th>
+                                    <th class="border-r border-slate-300 w-16" rowspan="2">Jangka Waktu</th>
+                                    <th class="border-r border-slate-300 w-24" rowspan="2">Change Group</th>
+                                    <th class="border-r border-slate-300 py-1" colspan="7">Prakiraan TAFOR</th>
+                                    <th class="border-r border-slate-300 w-64" rowspan="2">Pengamatan (METAR / SPECI)</th>
+                                    <th class="py-1" colspan="14">Hasil Verifikasi & Skor Kelulusan (H)</th>
+                                </tr>
+                                <tr class="bg-emerald-500 text-white font-bold border-b border-slate-300">
+                                    <th class="border-r border-slate-300 py-1 w-10">A</th><th class="border-r border-slate-300 w-10">B1</th><th class="border-r border-slate-300 w-10">B2</th><th class="border-r border-slate-300 w-14">C</th><th class="border-r border-slate-300 w-10">D</th><th class="border-r border-slate-300 w-14">E</th><th class="border-r border-slate-300 w-14">F</th>
+                                    <th class="border-r border-slate-200 py-1 w-10">A</th><th class="border-r border-slate-300 w-8 bg-emerald-600/40 text-slate-900">H</th>
+                                    <th class="border-r border-slate-200 w-10">B1</th><th class="border-r border-slate-300 w-8 bg-emerald-600/40 text-slate-900">H</th>
+                                    <th class="border-r border-slate-200 w-10">B2</th><th class="border-r border-slate-300 w-8 bg-emerald-600/40 text-slate-900">H</th>
+                                    <th class="border-r border-slate-200 w-14">C</th><th class="border-r border-slate-300 w-8 bg-emerald-600/40 text-slate-900">H</th>
+                                    <th class="border-r border-slate-200 w-10">D</th><th class="border-r border-slate-300 w-8 bg-emerald-600/40 text-slate-900">H</th>
+                                    <th class="border-r border-slate-200 w-14">E</th><th class="border-r border-slate-300 w-8 bg-emerald-600/40 text-slate-900">H</th>
+                                    <th class="border-r border-slate-200 w-14">F</th><th class="w-8 bg-emerald-600/40 text-slate-900">H</th>
+                                </tr>
+                            </thead>
+                            <tbody id="matrix-sheet-tbody-excel" class="divide-y divide-slate-300 bg-white text-slate-800 font-mono font-bold">
+                                <tr><td colspan="25" class="py-16 text-center text-slate-400 font-sans font-normal">Belum ada kalkulasi TAFOR harian. Tekan tombol 'Verifikasi'.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="view-labul" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-6 panel-input-box max-w-4xl mx-auto">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">📑 GENERATOR LAPORAN BULANAN</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Sistem akan menarik data cuaca otomatis dari database lokal dan menggabungkannya dengan data manual ATC.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
+                            <div class="text-xs font-bold text-slate-800 border-b border-slate-200 pb-2 uppercase tracking-wider">Waktu Laporan</div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Bulan</label>
+                                    <select id="labul-bulan" class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-blue-600">
+                                        <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                                        <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                                        <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                                        <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tahun</label>
+                                    <input type="number" id="labul-tahun" value="2026" class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-blue-600">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-5 space-y-4">
+                            <div class="text-xs font-bold text-blue-800 border-b border-blue-200 pb-2 uppercase tracking-wider">Pergerakan Pesawat (Data ATC)</div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Take-Off (Berangkat)</label>
+                                    <input type="number" id="atc-takeoff" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Landing (Tiba)</label>
+                                    <input type="number" id="atc-landing" placeholder="0" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="generateLabulMisi1()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm py-4 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 uppercase tracking-widest">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        Generate & Ekspor ke Excel (.xlsx)
+                    </button>
+                </div>
+            </section>
+
+            <section id="view-acs" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-6 panel-input-box max-w-3xl mx-auto text-center">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-black text-slate-900 flex items-center justify-center gap-2">🔄 KONVERTER PDF ACS KE EXCEL</h3>
+                        <p class="text-xs text-slate-400 mt-1">Unggah PDF ACS dari BMKGSoft. Sistem akan mengekstrak data ke Template Model A-E.</p>
+                    </div>
+
+                    <div class="bg-blue-50/50 border-2 border-dashed border-blue-200 rounded-2xl p-8 hover:bg-blue-50 transition-all relative">
+                        <input type="file" id="file-pdf-acs" accept=".xlsx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('label-file-acs').innerText = this.files[0] ? this.files[0].name : 'Klik atau Tarik File Excel Mentah ACS ke Sini'">
+                        <div class="flex flex-col items-center gap-3 pointer-events-none">
+                            <div class="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center text-blue-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-700" id="label-file-acs">Klik atau Tarik File Excel Mentah ACS ke Sini</h4>
+                        </div>
+                    </div>
+
+                    <button onclick="prosesKonversiACS()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm py-4 rounded-xl shadow-md transition-all uppercase tracking-widest">
+                        Uji Coba Ekstrak PDF
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </div>
+    
+    <div id="modal-loading" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-xs w-full shadow-2xl border text-center space-y-4">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-emerald-500 mb-2"></div>
+            <h4 class="text-base font-extrabold text-slate-900" id="loading-title">Memproses...</h4>
+            <p class="text-xs text-slate-500 leading-relaxed font-medium">Harap tunggu sebentar, sistem sedang melakukan kalkulasi.</p>
+        </div>
+    </div>
+    
+    <div id="modal-alert-custom" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[70] opacity-0 transition-opacity duration-300">
+        <div id="modal-alert-box" class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 text-center transform scale-95 transition-transform duration-300">
+            <div id="alert-icon-container" class="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-5">
+                <svg id="alert-icon-svg" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
+            </div>
+            <h4 class="text-xl font-black text-slate-900 mb-2 tracking-tight" id="alert-title">Notifikasi</h4>
+            <p class="text-sm text-slate-500 font-medium leading-relaxed mb-8" id="alert-message">Pesan di sini.</p>
+            <button onclick="tutupNotifikasiKustom()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-md uppercase tracking-wider text-xs">Mengerti</button>
+        </div>
+    </div>
+    
+    <script src="js/main.js"></script>
+    <script src="js/prakicu.js"></script>
+    <script src="js/tafor.js"></script>
+    <script src="js/verifikasi.js"></script>
+    <script src="js/acs.js"></script>
+    <script src="js/labul.js"></script>
+    <script src="js/hotspot.js"></script>
+
+    <script>
+        function getSelectedDashMonth() {
+            const el = document.getElementById('dash-filter-bulan');
+            return el ? el.value : "";
+        }
+
+        async function fetchLiveDashboardStats() {
+            try {
+                const bulan = getSelectedDashMonth();
+                const response = await fetch(`/api/metar/dashboard_stats?bulan=${bulan}`);
+                const data = await response.json();
+                
+                document.getElementById('dash-metar').innerText = data.total_metar;
+                document.getElementById('dash-taf').innerText = data.total_taf;
+                document.getElementById('dash-akurasi').innerText = data.akurasi + '%';
+                
+                if (data.last_sync !== "Belum Pernah") {
+                    const parts = data.last_sync.split(" ");
+                    const tgl = parts[0].split("-");
+                    const jam = parts[1].substring(0, 5);
+                    document.getElementById('dash-sync').innerText = `${tgl[2]}/${tgl[1]} ${jam}Z`;
+                } else {
+                    document.getElementById('dash-sync').innerText = data.last_sync;
+                }
+            } catch (err) { console.error("Stats API Error:", err); }
+        }
+
+        async function fetchLiveDashboardLogs() {
+            try {
+                const bulan = getSelectedDashMonth();
+                const response = await fetch(`/api/metar/dashboard_recent_logs?bulan=${bulan}`);
+                const data = await response.json();
+                
+                const metarContainer = document.getElementById('dashboard-metar-list');
+                const tafContainer = document.getElementById('dashboard-taf-list');
+                if (!metarContainer || !tafContainer) return;
+
+                const tickerEl = document.getElementById('live-ticker-text');
+                if (data.length > 0 && tickerEl) {
+                    const sandiGabungan = data.slice(0, 3).map(r => `<span class="text-emerald-600">[${r.waktu_rekam.substring(11, 16)}Z]</span> ${r.sandi_metar}`).join(' &nbsp;&nbsp; | &nbsp;&nbsp; ');
+                    tickerEl.innerHTML = `🟢 LATEST UPDATE: &nbsp;&nbsp; ${sandiGabungan} &nbsp;&nbsp; | &nbsp;&nbsp; STANDBY...`;
+                }
+
+                const listMetar = data.filter(row => row.sandi_metar.includes("METAR") || row.sandi_metar.includes("SPECI")).slice(0, 5);
+                const listTaf = data.filter(row => row.sandi_metar.includes("TAF")).slice(0, 5);
+
+                if (listMetar.length === 0) {
+                    metarContainer.innerHTML = `<div class="p-3 text-center text-slate-400 font-sans italic">Tidak ada data METAR di bulan ini.</div>`;
+                } else {
+                    metarContainer.innerHTML = listMetar.map(row => `
+                        <div class="p-2.5 bg-blue-50/60 text-blue-900 border border-blue-100 rounded-xl font-mono flex flex-col gap-1 hover:bg-blue-100/50 transition-all shadow-sm">
+                            <span class="text-[9px] font-black text-blue-500">${row.waktu_rekam}</span>
+                            <span class="break-words font-semibold select-all tracking-wide text-[11px]">${row.sandi_metar}</span>
+                        </div>
+                    `).join('');
+                }
+
+                if (listTaf.length === 0) {
+                    tafContainer.innerHTML = `<div class="p-3 text-center text-slate-400 font-sans italic">Tidak ada data TAFOR di bulan ini.</div>`;
+                } else {
+                    tafContainer.innerHTML = listTaf.map(row => `
+                        <div class="p-2.5 bg-indigo-50/60 text-indigo-900 border border-indigo-100 rounded-xl font-mono flex flex-col gap-1 hover:bg-indigo-100/50 transition-all shadow-sm">
+                            <span class="text-[9px] font-black text-indigo-500">${row.waktu_rekam}</span>
+                            <span class="break-words font-semibold select-all tracking-wide text-[11px]">${row.sandi_metar}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) { console.error("Mini Log API Error:", err); }
+        }
+
+        function refreshDashboardData() {
+            fetchLiveDashboardStats();
+            fetchLiveDashboardLogs();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputBulan = document.getElementById('dash-filter-bulan');
+            if (inputBulan) {
+                const sekarang = new Date();
+                const yyyy = sekarang.getFullYear();
+                const mm = String(sekarang.getMonth() + 1).padStart(2, '0');
+                inputBulan.value = `${yyyy}-${mm}`;
+            }
+            refreshDashboardData();
+            setInterval(refreshDashboardData, 60000); 
+        });
+    </script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnDark = document.getElementById('btn-dark-mode');
+            const ikonDark = document.getElementById('ikon-dark');
+            const htmlEl = document.documentElement;
+
+            // Cek memori saat pertama buka
+            if (localStorage.getItem('mode_layar') === 'gelap') {
+                htmlEl.classList.add('dark'); // 👈 Sekarang pakai 'dark'
+                if(ikonDark) { ikonDark.innerText = '☀️'; }
+            }
+
+            if(btnDark) {
+                btnDark.addEventListener('click', () => {
+                    htmlEl.classList.toggle('dark'); // 👈 Sekarang pakai 'dark'
+                    
+                    if (htmlEl.classList.contains('dark')) {
+                        localStorage.setItem('mode_layar', 'gelap');
+                        ikonDark.innerText = '☀️';
+                    } else {
+                        localStorage.setItem('mode_layar', 'terang');
+                        ikonDark.innerText = '🌙';
+                    }
+                });
+            }
+        });
+    </script>
+
+    <script>
+        function tampilkanNotifikasi(judul, pesan, tipe = 'success') {
+            const modal = document.getElementById('modal-alert-custom');
+            const box = document.getElementById('modal-alert-box');
+            const iconBox = document.getElementById('alert-icon-container');
+            const iconSvg = document.getElementById('alert-icon-svg');
+            
+            document.getElementById('alert-title').innerText = judul;
+            document.getElementById('alert-message').innerText = pesan;
+
+            if (tipe === 'success') {
+                iconBox.className = "mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-5 bg-emerald-100 text-emerald-500";
+                iconSvg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />`;
+            } else if (tipe === 'error') {
+                iconBox.className = "mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-5 bg-red-100 text-red-500";
+                iconSvg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />`;
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function tutupNotifikasiKustom() {
+            const modal = document.getElementById('modal-alert-custom');
+            const box = document.getElementById('modal-alert-box');
+            
+            modal.classList.add('opacity-0');
+            box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+    </script>
+    <!-- 🟢 SUNTIKAN 3: Radar Pemantau Autosend -->
+    <script>
+        function jalankanRadarAutosend() {
+            // Cek ke server setiap 10 detik (10000 milidetik)
+            setInterval(() => {
+                fetch('/api/cek-notif-autosend')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Jika server membalas status: True (ada autosend yang selesai)
+                        if (data.status === true) {
+                            // Cek apakah pesan mengandung kata "Gagal" untuk menentukan icon popup
+                            const tipeAlert = data.pesan.includes("Gagal") ? "error" : "success";
+                            
+                            // Panggil popup kustom bawaan Kapten
+                            tampilkanNotifikasi("AUTOSEND SELESAI", data.pesan, tipeAlert);
+                            
+                            // Refresh status agar tombol "Batal" di web hilang kembali
+                            if (typeof cekStatusAutosend === 'function') {
+                                cekStatusAutosend();
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Radar Autosend error:", err));
+            }, 10000); 
+        }
+
+        // Nyalakan radar saat web pertama kali dibuka
+        document.addEventListener("DOMContentLoaded", jalankanRadarAutosend);
+    </script>
+</body>
+</html>
