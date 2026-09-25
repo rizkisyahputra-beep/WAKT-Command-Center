@@ -4,8 +4,3 @@ database_wakt.db
 # Jangan upload file sampah sistem
 __pycache__/
 *.pyc
-
-# Jangan upload file download excel/pdf sementara
-*.xlsx
-*.pdf
-!template_*.xlsx
